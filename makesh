@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "$0> Reading $1"
+for i in `otool -jtv $1 | tr '\t' '\n' | egrep "^.byte|^[0-9a-f]{2,2}" | sed s/0x/''/ | tr ' \n' '\n' | egrep "^[0-9a-f]{2,2}$"`
+do 
+    str+="\x$i"
+done
+echo "$0> Shellcode: "
+echo $str
+echo "$0> Writing shellcode to $2.txt"
+echo $str > $2.txt
+echo "$0> Writing bin shellcode to $2.bin"
+echo -e $str > $2.bin

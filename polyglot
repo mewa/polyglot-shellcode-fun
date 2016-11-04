@@ -1,0 +1,45 @@
+#!/bin/bash
+XOR_ECX="\x31\xc9"
+
+mkdir temp
+f32=$1
+f64=$2
+
+nasm -fmacho $f32 -o ./temp/$f32.o
+./makesh ./temp/$f32.o ./temp/$f32
+
+echo Shellcode x86 created
+
+nasm -fmacho64 $f64 -o ./temp/$f64.o
+./makesh ./temp/$f64.o ./temp/$f64
+
+echo Shellcode x64 created
+
+text32=`cat ./temp/$f32.txt`
+bin32=`cat ./temp/$f32.bin`
+
+text64=`cat ./temp/$f64.txt`
+bin64=`cat ./temp/$f64.bin`
+
+len32=`echo $bin32 | wc -c`
+echo x86 bin size: $len32
+len32=$len32+5 #sub 2, since jecxz 0x2 = 0xe300
+len32="obase=16; $len32"
+len32=`echo $len32 | bc`
+echo 32bit len: $len32
+x=`echo -n "$XOR_ECX\x41\xe3\x$len32"` # jcexz $len32
+echo Header
+echo -ne $x | ndisasm -b64 /dev/stdin
+
+echo Shellcode:
+sh=$text32$text64
+echo $sh
+echo -ne $sh > ./temp/final
+echo $sh > ./temp/final.txt
+./checkzero $(echo -n $sh | sed 's/\\/\\\\/g')
+
+
+
+
+#nasm -fmacho $3 -o $3.o
+#./makesh $3.o ./temp/$3.o

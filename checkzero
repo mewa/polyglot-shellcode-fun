@@ -1,0 +1,10 @@
+#!/bin/sh
+
+found=`echo "$1" | sed 's/\\x/ /g' | tr ' ' '\n' | egrep [0-9a-f] | sed s/^/0x/g | cat -n | egrep 0x00 | tr -d '\\' | tr -s ' '`
+if [[ -n $found ]]
+then
+echo Null bytes found:
+echo "$found"
+else
+echo Null-byte free!
+fi
